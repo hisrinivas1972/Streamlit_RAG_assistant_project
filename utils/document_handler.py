@@ -1,26 +1,23 @@
 import fitz  # PyMuPDF
 import docx
 import pandas as pd
-import pytesseract
 from PIL import Image
+import pytesseract
 import io
 
 def extract_text_from_file(file, file_type):
-    text = ""
     if file_type == "pdf":
         doc = fitz.open(stream=file.read(), filetype="pdf")
-        for page in doc:
-            text += page.get_text()
+        return "\n".join(page.get_text() for page in doc)
     elif file_type == "docx":
         doc = docx.Document(file)
-        for para in doc.paragraphs:
-            text += para.text + "\n"
+        return "\n".join(p.text for p in doc.paragraphs)
     elif file_type == "txt":
-        text = file.read().decode("utf-8")
+        return file.read().decode("utf-8")
     elif file_type == "xlsx":
         df = pd.read_excel(file)
-        text = df.to_string()
+        return df.to_string()
     elif file_type in ["png", "jpg", "jpeg"]:
-        image = Image.open(file)
-        text = pytesseract.image_to_string(image)
-    return text
+        image = Image.open(io.BytesIO(file.read()))
+        return pytesseract.image_to_string(image)
+    return ""
