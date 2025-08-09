@@ -1,0 +1,10 @@
+streamlit
+langchain
+sentence-transformers
+faiss-cpu
+PyMuPDF
+python-docx
+pandas
+whisper
+yt-dlp
+ollama
