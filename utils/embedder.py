@@ -2,20 +2,15 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def embed_chunks(chunks):
-    embeddings = model.encode(chunks, convert_to_numpy=True)
-    return embeddings
+    embs = model.encode(chunks)
+    index = faiss.IndexFlatL2(embs.shape[1])
+    index.add(embs)
+    return index, embs
 
-def create_faiss_index(chunks, embeddings):
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(embeddings)
-    return index
-
-def semantic_search(index, chunks, query, top_k=3):
-    query_emb = model.encode([query], convert_to_numpy=True)
-    distances, indices = index.search(query_emb, top_k)
-    results = [chunks[i] for i in indices[0] if i < len(chunks)]
-    return results
+def search_similar_chunks(query, chunks, index, embs, top_k=3):
+    q_emb = model.encode([query])
+    _, idxs = index.search(q_emb, top_k)
+    return [chunks[i] for i in idxs[0] if i < len(chunks)]
